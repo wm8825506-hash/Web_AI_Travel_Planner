@@ -9,6 +9,10 @@ env/
 ENV/
 .venv/
 .env/
+Lib/
+Scripts/
+include/
+pyvenv.cfg
 
 # IDE
 .idea/
