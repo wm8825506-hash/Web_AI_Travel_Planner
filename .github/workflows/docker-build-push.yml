@@ -44,9 +44,3 @@ jobs:
           tags: |
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:latest
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:master-${{ github.sha }}
-
-      # 可选：打开层缓存，加速二次构建
-      # cache-from: type=gha
-      # cache-to: type=gha,mode=max
-      # 可选：多架构（如需在 ARM 服务器跑）
-      # platforms: linux/amd64,linux/arm64

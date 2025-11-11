@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:16-alpine AS build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # 安装依赖
-RUN npm ci --silent
+RUN npm ci --legacy-peer-deps
 
 # 复制源代码
 COPY . ./
