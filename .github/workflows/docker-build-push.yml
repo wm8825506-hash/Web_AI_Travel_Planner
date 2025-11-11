@@ -1,65 +1,61 @@
-name: Build and Push Docker Images
+name: Build & Push Docker to Aliyun ACR
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ master ]
+  # 给标签时也构建（可选）
+  tags:
+    - 'v*'
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    
-    - name: Login to Alibaba Cloud Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: registry.cn-hangzhou.aliyuncs.com
-        username: ${{ secrets.ACR_USERNAME }}
-        password: ${{ secrets.ACR_PASSWORD }}
-    
-    - name: Extract metadata for backend
-      id: meta-backend
-      uses: docker/metadata-action@v4
-      with:
-        images: registry.cn-hangzhou.aliyuncs.com/${{ secrets.ACR_NAMESPACE }}/ai-travel-backend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-    
-    - name: Build and push backend image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: ${{ steps.meta-backend.outputs.tags }}
-        labels: ${{ steps.meta-backend.outputs.labels }}
-    
-    - name: Extract metadata for frontend
-      id: meta-frontend
-      uses: docker/metadata-action@v4
-      with:
-        images: registry.cn-hangzhou.aliyuncs.com/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-    
-    - name: Build and push frontend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./ai-travel-planner-frontend
-        file: ./ai-travel-planner-frontend/Dockerfile
-        push: true
-        tags: ${{ steps.meta-frontend.outputs.tags }}
-        labels: ${{ steps.meta-frontend.outputs.labels }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Prepare tags
+        id: prep
+        run: |
+          # 计算短 SHA
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+
+          # 规范化仓库完整名：<registry>/<namespace>/<repo>
+          IMAGE="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}"
+
+          # 默认给 latest 和 分支-SHORT_SHA 两个 tag
+          TAGS="--tag ${IMAGE}:latest --tag ${IMAGE}:master-${SHORT_SHA}"
+
+          # 如果是 tag 触发（例如 v1.2.3），再追加版本号 tag
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            REF="${GITHUB_REF_NAME}"
+            TAGS="${TAGS} --tag ${IMAGE}:${REF}"
+          fi
+
+          echo "IMAGE=${IMAGE}" >> $GITHUB_OUTPUT
+          echo "TAGS=${TAGS}"   >> $GITHUB_OUTPUT
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # 多标签一次性推
+          tags: ${{ steps.prep.outputs.TAGS }}
+          # 可选：打开层缓存，加速二次构建
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # 可选：多架构（如需在 ARM 服务器跑）
+          # platforms: linux/amd64,linux/arm64
