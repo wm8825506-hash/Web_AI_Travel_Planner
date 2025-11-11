@@ -9,12 +9,14 @@ import iconShadow from "leaflet/dist/images/marker-shadow.png";
 // 为不同类型的地点创建不同的图标
 const createIcon = (type) => {
   // 根据类型设置不同的图标颜色或样式
-  let iconColor = 'red'; // 默认红色
-  if (type === '景点') iconColor = 'red';
-  if (type === '住宿') iconColor = 'blue';
-  if (type === '交通') iconColor = 'green';
-  if (type === '餐饮') iconColor = 'orange';
+  // let iconColor = 'red'; // 默认红色
+  // if (type === '景点') iconColor = 'red';
+  // if (type === '住宿') iconColor = 'blue';
+  // if (type === '交通') iconColor = 'green';
+  // if (type === '餐饮') iconColor = 'orange';
 
+  // 由于Leaflet默认图标不支持直接设置颜色，我们返回默认图标
+  // 在实际应用中，可以使用其他库如leaflet-color-markers来实现彩色图标
   return L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
@@ -46,6 +48,8 @@ export default function TripMap({ plan, selectedDay }) {
   useEffect(() => {
     if (!plan || !plan.plan) return;
     const dayItems = selectedDay ? plan.plan[selectedDay] : Object.values(plan.plan).flat();
+    
+    // 提取普通地点
     const locs = (dayItems || []).filter((i) => i.location);
     setPoints(locs);
   }, [plan, selectedDay]);
@@ -57,6 +61,14 @@ export default function TripMap({ plan, selectedDay }) {
       return [lat, lng];
     }
     return [35.6895, 139.6917]; // 默认东京
+  }, [points]);
+
+  // ✅ 计算当天行程路线（连接所有地点）
+  const dayRoute = useMemo(() => {
+    if (points.length > 1) {
+      return points.map(p => [p.location.lat, p.location.lng]);
+    }
+    return [];
   }, [points]);
 
   return (
@@ -94,21 +106,21 @@ export default function TripMap({ plan, selectedDay }) {
               <br />
               {p.type} — {p.time || ""}
               <br />
-              💴 {p.estimated_cost || 0} 日元
+              💰 {p.estimated_cost || 0} 元
               {p.note && (
                 <>
                   <br />
-                  📝 {p.note}
+                  💡 {p.note}
                 </>
               )}
             </Popup>
           </Marker>
         ))}
 
-        {/* ✅ 绘制路线连线 */}
-        {points.length > 1 && (
+        {/* ✅ 绘制当天行程路线（连接所有地点） */}
+        {dayRoute.length > 1 && (
           <Polyline
-            positions={points.map((p) => [p.location.lat, p.location.lng])}
+            positions={dayRoute}
             color="#007BFF"
             weight={3}
           />

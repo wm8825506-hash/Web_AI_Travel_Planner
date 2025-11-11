@@ -33,7 +33,7 @@ export default function BudgetChart({ budget }) {
           <Legend />
         </PieChart>
       </ResponsiveContainer>
-      <p style={{ textAlign: "center" }}>💰 总预算：{budget.total} 日元</p>
+      <p style={styles.totalBudget}>💰 总预算：<strong>{budget.total}</strong> 元</p>
     </div>
   );
 }
@@ -45,4 +45,14 @@ const styles = {
     background: "#f9f9f9",
     borderRadius: "10px",
   },
+  totalBudget: {
+    textAlign: "center",
+    fontSize: "1.2em",
+    fontWeight: "bold",
+    marginTop: "15px",
+    padding: "10px",
+    background: "#fff",
+    borderRadius: "5px",
+    border: "1px solid #eee"
+  }
 };

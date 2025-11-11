@@ -1,33 +1,38 @@
-from fastapi import APIRouter, Body
+# app/routers/plan.py
+from fastapi import APIRouter, HTTPException, Depends, Query
 from app.services.ai_planner import generate_plan_from_query
-import asyncio
-import traceback
+from app.services.supabase_client import save_plan, list_plans, get_plan
 
-router = APIRouter(prefix="/plan", tags=["Plan"])
+router = APIRouter(tags=["Plan"])
 
 @router.post("/generate")
-async def generate_plan(payload: dict = Body(...)):
+async def generate_plan(request: dict):
     """
-    AI 行程规划生成接口
+    request: { "query": "...", "user": "meng" }
     """
-    try:
-        user_query = payload.get("query", "")
-        if not user_query:
-            return {"success": False, "error": "缺少用户输入 query"}
+    query = request.get("query")
+    user = request.get("user", "guest")
+    if not query:
+        raise HTTPException(status_code=400, detail="缺少 query 参数")
 
-        result = await generate_plan_from_query(user_query)
-        
-        # 如果返回的是错误信息，也返回给前端
-        if not result.get("success", False) and "data" in result:
-            return {"success": False, "error": "AI生成内容格式错误", "raw_data": result["data"]}
-            
-        return result
+    result = await generate_plan_from_query(query)
+    if not result.get("success"):
+        return {"success": False, "error": result.get("error", "AI生成失败")}
 
-    except asyncio.CancelledError:
-        # 客户端断开连接或请求被取消
-        print("⚠️ 请求被取消")
-        raise  # 重新抛出取消异常，让FastAPI正确处理
+    data = result["data"]
+    # ✅ 保存到 Supabase
+    plan_id = save_plan(user, data)
+    data["plan_id"] = plan_id
+    return {"success": True, "data": data, "plan_id": plan_id}
 
-    except Exception as e:
-        print("❌ 行程生成异常：", traceback.format_exc())
-        return {"success": False, "error": str(e)}
+@router.get("/list")
+def my_plans(user: str = Query(..., description="用户名")):
+    plans = list_plans(user)
+    return {"success": True, "data": plans}
+
+@router.get("/{plan_id}")
+def get_plan_detail(plan_id: str):
+    data = get_plan(plan_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="行程不存在")
+    return {"success": True, "data": data}

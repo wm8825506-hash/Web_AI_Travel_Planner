@@ -16,82 +16,68 @@ PROMPT_TEMPLATE = r"""
 
 请根据以下用户输入，生成一份详细的旅行行程规划。
 
-【输出要求】（务必严格遵循）：
+【输出要求】：
 1. **必须输出严格的 JSON 字符串**（不能包含任何文字说明、空行、或者 Markdown 代码块标记）。
-2. JSON 结构如下（所有示例仅作格式参考，内容请根据用户需求生成）：
+2. JSON 结构如下（内容请根据用户需求生成）：
 
 {
   "destination": "旅行目的地",
   "days": 5,
-  "summary": "一句话概述行程主题（如：家庭温泉美食游）",
+  "summary": "一句话简短概述行程主题",
   "plan": {
     "day_1": [
       {
         "type": "交通",
-        "name": "成田机场 → 新宿酒店",
-        "detail": "抵达成田机场后乘坐N'EX特快列车前往新宿，全程约60分钟",
-        "time": "08:00-09:30",
-        "estimated_cost": 3000,
-        "location": {"lat": 35.7719, "lng": 140.3929},
-        "note": "建议提前购买JR PASS节省费用"
+        "name": "起点 → 终点",
+        "detail": "交通方式及说明",
+        "time": "09:00-10:00",
+        "estimated_cost": 100,
+        "location": {
+          "start": {"lat": 35.6812, "lng": 139.7671},
+          "end": {"lat": 35.6895, "lng": 139.6917}
+        }
       },
       {
-        "type": "景点",
-        "name": "浅草寺",
-        "time": "10:00-11:30",
-        "estimated_cost": 0,
-        "location": {"lat": 35.7148, "lng": 139.7967},
-        "note": "东京最古老的寺庙，免费参观"
-      },
-      {
-        "type": "餐饮",
-        "name": "一兰拉面新宿店",
-        "time": "12:00-13:00",
-        "estimated_cost": 1500,
-        "location": {"lat": 35.6920, "lng": 139.7006},
-        "note": "当地著名连锁拉面，人均约1500元"
-      },
-      {
-        "type": "住宿",
-        "name": "东京希尔顿酒店",
-        "time": "20:00",
-        "estimated_cost": 15000,
-        "location": {"lat": 35.6940, "lng": 139.6920},
-        "note": "豪华型酒店，含早餐"
-      }
-    ],
-    "day_2": [...]
+        "type": "景点/餐饮/住宿",
+        "name": "景点/餐饮/住宿名称",
+        "time": "10:30-12:00",
+        "estimated_cost": 50,
+        "location": {"lat": 35.6895, "lng": 139.6917},
+        "note": "简要描述"
+      } 
+    ]
   },
   "daily_budget": [
-    {"day": 1, "estimated_total": 19500},
-    {"day": 2, "estimated_total": 18000},
-    {"day": 3, "estimated_total": 20000}
+    {"day": 1, "estimated_total": 500}
   ],
   "budget": {
     "currency": "RMB",
-    "total": 90000,
-    "transport": 10000,
-    "hotel": 40000,
-    "food": 15000,
-    "ticket": 15000,
-    "other": 10000
+    "total": 2000,
+    "transport": 500,
+    "hotel": 1000,
+    "food": 300,
+    "ticket": 200
   },
   "personalized_tips": [
-    "推荐购买东京地铁一日通票节省出行费用。",
-    "带孩子可优先安排东京迪士尼或 teamLab Planets。",
-    "如预算充足，建议体验箱根温泉旅馆。"
+    "实用建议"
   ]
 }
 
 【生成规则】：
-- 每天至少包括：交通、景点、餐饮、住宿四种类型。
-- **交通项必须包含 name（如"东京站 → 富士山"）与 location（经纬度）**。
-- **所有行程项必须包含 location 字段，格式为 {"lat": 纬度, "lng": 经度}，坐标系为 WGS84，lat ∈ [-90,90]，lng ∈ [-180,180]。**
-- 每个行程项都必须包含 estimated_cost（数字，单位为日元）。
-- 若用户预算较低，请给出经济型住宿与简餐推荐；预算充足时可加入高质量体验。
-- daily_budget 表示每日预估开销；budget 为整趟旅行预算汇总。
-- **输出必须是合法 JSON 对象字符串**，禁止出现多余文字、注释、或 Markdown 代码块标记。
+- 每天至少包括：交通、景点、餐饮、住宿四种类型（最后一天可以没有住宿）。
+- **每个非交通活动（景点、餐饮、住宿）都必须有前置的交通信息**。
+- **所有行程项必须包含 location 字段**，格式为 {"lat": 纬度, "lng": 经度}。
+- 每个行程项都必须包含 estimated_cost（数字）。
+- daily_budget 表示每日预算开销；budget 为整趟旅行预算汇总。
+- **输出必须是合法 JSON 对象字符串**，禁止出现多余文字。
 - **确保输出完整，不要截断内容**
+- **确保所有属性名都使用双引号包围**
+
+【重要说明】：
+- 交通信息必须前置：每个景点/餐饮/住宿前必须有相应的交通信息
+- 交通起点是上一个活动的地点，终点是当前活动的地点
+- 确保交通时间和活动时间连续且合理
+- 时间安排需考虑地理位置的合理性。
 
 【用户输入】：
 {user_input}
@@ -101,7 +87,7 @@ def extract_json_safe(content: str):
     """
     从模型返回文本中安全提取 JSON 字符串
     """
-    max_attempts = 3
+    max_attempts = 5  # 增加尝试次数
     for attempt in range(max_attempts):
         try:
             content = content.strip()
@@ -110,8 +96,17 @@ def extract_json_safe(content: str):
             content = re.sub(r"^```", "", content)
             content = re.sub(r"```$", "", content)
             content = content.strip()
+            
+            # 查找第一个 { 和最后一个 } 之间的内容
+            first_brace = content.find('{')
+            last_brace = content.rfind('}')
+            
+            if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                content = content[first_brace:last_brace+1]
+            
             return json.loads(content)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"⚠️ JSON解析错误: {e}")
             # 退而求其次：截取第一个大括号块
             m = re.search(r"\{.*\}", content, re.S)
             if m:
@@ -125,6 +120,21 @@ def extract_json_safe(content: str):
                     return json.loads(json_str)
                 except Exception as e:
                     print("⚠️ 二次解析失败：", e)
+            # 如果是逗号缺失问题，尝试进一步修复
+            if "Expecting ',' delimiter" in str(e):
+                # 尝试在数字和引号之间添加逗号
+                content = re.sub(r'(\d)(\s*")', r'\1, \2', content)
+                try:
+                    return json.loads(content)
+                except:
+                    pass
+            # 如果是属性名未加引号问题
+            if "Expecting property name enclosed in double quotes" in str(e):
+                content = re.sub(r'([{,])\s*([a-zA-Z_]\w*)\s*:', r'\1"\2":', content)
+                try:
+                    return json.loads(content)
+                except:
+                    pass
         time.sleep(0.3)
     print("⚠️ 无法解析JSON，原始输出预览：", repr(content[:200]))
     return {"error": "JSON解析失败", "raw": content[:1000]}
@@ -153,6 +163,41 @@ def fix_truncated_json(json_str: str) -> str:
     
     # 如果最后一个字符是逗号，去掉它
     json_str = re.sub(r',$', '', json_str)
+    
+    # 修复可能的JSON语法错误
+    # 修复属性名未用双引号包围的问题
+    json_str = re.sub(r'([{,])\s*([a-zA-Z_]\w*)\s*:', r'\1"\2":', json_str)
+    
+    # 修复被截断的字符串
+    json_str = re.sub(r'([^\\])"$', r'\1"', json_str)
+    
+    # 修复缺失的冒号
+    json_str = re.sub(r'("\w+")\s*("[^"]*")', r'\1:\2', json_str)  # 修复冒号后有空格的问题
+    json_str = re.sub(r'("\w+")\s*([{\[\d])', r'\1:\2', json_str)  # 修复属性值前缺少冒号的问题
+    
+    # 修复缺失的逗号
+    json_str = re.sub(r'(\})(\s*")', r'\1,\2', json_str)
+    json_str = re.sub(r'(\})(\s*\{)', r'\1,\2', json_str)
+    json_str = re.sub(r'(\])(\s*")', r'\1,\2', json_str)
+    json_str = re.sub(r'(\])(\s*\{)', r'\1,\2', json_str)
+    
+    # 修复数字后面缺少逗号的问题
+    json_str = re.sub(r'(\d)(\s*")', r'\1,\2', json_str)
+    
+    # 修复字符串中包含未转义的引号
+    # 查找可能的未闭合字符串
+    parts = json_str.split('"')
+    if len(parts) % 2 == 0:  # 引号数量不匹配
+        # 尝试找到可能的错误引号并修复
+        for i in range(len(parts)-1, 0, -1):
+            if parts[i].strip() and not parts[i].endswith(','):
+                # 在这个位置可能缺少闭合引号
+                parts[i] = parts[i] + '"'
+                break
+        json_str = '"'.join(parts)
+    
+    # 修复空键问题
+    json_str = re.sub(r'"":', '"empty_key":', json_str)
     
     # 确保字符串末尾是有效的结束字符
     if json_str and json_str[-1] not in ['}', ']', '"', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
@@ -196,6 +241,55 @@ def normalize_location(loc):
         return None
     return {"lat": lat, "lng": lng}
 
+def extract_locations_from_transport(transport_item):
+    """
+    从交通项中提取所有位置坐标
+    """
+    locations = []
+    
+    # 处理新的routes格式
+    if "routes" in transport_item and isinstance(transport_item["routes"], list):
+        for route in transport_item["routes"]:
+            if "locations" in route and isinstance(route["locations"], list):
+                for loc in route["locations"]:
+                    if "lat" in loc and "lng" in loc:
+                        locations.append({
+                            "name": loc.get("name", ""),
+                            "lat": loc["lat"],
+                            "lng": loc["lng"]
+                        })
+    
+    # 处理旧格式
+    elif "location" in transport_item:
+        loc = transport_item["location"]
+        # 处理start/end格式
+        if "start" in loc and "end" in loc:
+            start_loc = normalize_location(loc["start"])
+            end_loc = normalize_location(loc["end"])
+            if start_loc:
+                locations.append({
+                    "name": "起点",
+                    "lat": start_loc["lat"],
+                    "lng": start_loc["lng"]
+                })
+            if end_loc:
+                locations.append({
+                    "name": "终点",
+                    "lat": end_loc["lat"],
+                    "lng": end_loc["lng"]
+                })
+        # 处理单点格式
+        else:
+            norm_loc = normalize_location(loc)
+            if norm_loc:
+                locations.append({
+                    "name": transport_item.get("name", "交通点"),
+                    "lat": norm_loc["lat"],
+                    "lng": norm_loc["lng"]
+                })
+    
+    return locations
+
 async def generate_plan_from_query(user_query: str):
     """
     使用通义千问生成旅行行程（模型直接返回经纬度，不再做地理编码）
@@ -237,6 +331,7 @@ async def generate_plan_from_query(user_query: str):
                     for i in items:
                         if not isinstance(i, dict):
                             continue
+                        # 处理普通活动的位置信息
                         if "location" in i:
                             norm = normalize_location(i["location"])
                             if norm:
@@ -244,6 +339,14 @@ async def generate_plan_from_query(user_query: str):
                             else:
                                 # 坐标非法则移除 location（前端不会画点）
                                 i.pop("location", None)
+                        
+                        # 处理交通活动的位置信息
+                        if i.get("type") == "交通":
+                            # 从交通项中提取位置信息，用于前端地图展示
+                            transport_locations = extract_locations_from_transport(i)
+                            # 可以将这些位置信息存储在额外字段中，供前端使用
+                            if transport_locations:
+                                i["_transport_locations"] = transport_locations
 
             return {"success": True, "data": data}
 

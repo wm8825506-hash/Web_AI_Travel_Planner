@@ -12,6 +12,7 @@ from time import mktime, sleep
 import traceback
 import time
 from app.config import settings
+import os
 
 APPID = settings.SPEECH_APP_ID
 API_KEY = settings.SPEECH_API_KEY
@@ -76,7 +77,7 @@ API_SECRET = settings.SPEECH_API_SECRET
 #     while True:
 #         msg = ws.recv()
 #         if not msg:
-#             break
+#         break
 #         # msg_dict = json.loads(msg)
 #         # if msg_dict["code"] != 0:
 #         try:
@@ -132,12 +133,22 @@ def xfyun_speech_to_text(file_path: str):
     并打印每一步的详细响应。
     """
     try:
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            print(f"❌ 文件不存在: {file_path}")
+            return ""
+            
+        # 检查文件是否为空
+        if os.path.getsize(file_path) == 0:
+            print(f"❌ 文件为空: {file_path}")
+            return ""
+        
         url = create_url()
         ws = websocket.WebSocket()
         ws.connect(url, sslopt={"cert_reqs": ssl.CERT_NONE})
         print(f"🛰️ 已连接讯飞WebSocket：{url}")
 
-        # 读取音频
+        # 读取音频（以二进制模式读取）
         with open(file_path, "rb") as f:
             audio_data = f.read()
 
