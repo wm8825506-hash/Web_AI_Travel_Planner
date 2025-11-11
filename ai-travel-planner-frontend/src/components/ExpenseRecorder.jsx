@@ -51,7 +51,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
 
     // 准备发送到后端的数据
     const requestData = {
-      username: username || "guest",
+      user: username || "guest",
       plan_id: planId,
       category,
       amount,

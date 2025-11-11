@@ -15,18 +15,16 @@ def register(user: UserCreate):
         # 检查用户是否已存在
         # 修复Supabase查询语法
         username_check = supabase.table('users').select('*').eq('username', user.username).execute()
-        email_check = supabase.table('users').select('*').eq('email', user.email).execute()
         
-        if username_check.data or email_check.data:
-            raise HTTPException(status_code=400, detail="Username or email already registered")
+        if username_check.data:
+            raise HTTPException(status_code=400, detail="邮箱已注册")
         
         # 对密码进行哈希处理
         hashed_password = pwd_context.hash(user.password[:72])  # 截断 72 字节
         
-        # 插入新用户
+        # 插入新用户，使用邮箱作为用户名
         user_data = {
-            "username": user.username,
-            "email": user.email,
+            "username": user.username,  # 使用邮箱作为用户名
             "password": hashed_password
         }
         
@@ -36,8 +34,7 @@ def register(user: UserCreate):
             new_user = result.data[0]
             return UserRead(
                 id=new_user['id'],
-                username=new_user['username'],
-                email=new_user['email']
+                username=new_user['username']
             )
         else:
             raise HTTPException(status_code=500, detail="Failed to create user")
@@ -53,17 +50,17 @@ def register(user: UserCreate):
 @router.post("/login")
 def login(user: UserLogin):
     try:
-        # 查找用户
-        response = supabase.table('users').select('*').eq('username', user.username).execute()
+        # 查找用户，支持使用用户名或邮箱登录
+        response = supabase.table('users').select('*').eq('username', user.username_or_email).execute()
         
         if not response.data:
-            raise HTTPException(status_code=400, detail="Invalid username")
+            raise HTTPException(status_code=400, detail="邮箱不存在")
         
         db_user = response.data[0]
         
         # 验证密码
         if not pwd_context.verify(user.password[:72], db_user['password']):
-            raise HTTPException(status_code=400, detail="Incorrect password")
+            raise HTTPException(status_code=400, detail="密码错误")
         
         return {"message": f"User {db_user['username']} logged in successfully"}
         

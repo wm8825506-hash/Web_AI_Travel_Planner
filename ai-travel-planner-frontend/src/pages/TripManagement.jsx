@@ -256,7 +256,6 @@ const TripManagement = ({ username }) => {
                     {Object.entries(plan.plan || {}).map(([day, activities], idx) => (
                       <div style={styles.dayCardWrapper} key={day}>
                         <TripDayCard
-                        day={day}
                         index={idx}
                         activities={activities}
                         dayBudget={(plan.daily_budget || [])[idx]?.estimated_total}

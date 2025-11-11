@@ -53,13 +53,15 @@ PROMPT_TEMPLATE = r"""
   "budget": {
     "currency": "RMB",
     "total": 2000,
-    "transport": 500,
-    "hotel": 1000,
-    "food": 300,
-    "ticket": 200
+    "交通": 400,
+    "住宿": 1000,
+    "餐饮": 200,
+    "门票": 200,
+    "购物": 100,
+    "其他": 100
   },
   "personalized_tips": [
-    "实用建议"
+    "1-2条实用建议"
   ]
 }
 

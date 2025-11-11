@@ -1,21 +1,21 @@
 const BASE_URL = "http://127.0.0.1:8000/auth";
 
-export const register = async (username, email, password) => {
+export const register = async (username, password) => {
   const res = await fetch(`${BASE_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password: password.slice(0, 72) }),
+    body: JSON.stringify({ username, password: password.slice(0, 72) }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || "注册失败");
   return data;
 };
 
-export const login = async (username, password) => {
+export const login = async (email, password) => {
   const res = await fetch(`${BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password: password.slice(0, 72) }),
+    body: JSON.stringify({ username_or_email: email, password: password.slice(0, 72) }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || "登录失败");
@@ -57,4 +57,3 @@ export async function createPlan(body) {
     return { success: false, error: e.message };
   }
 }
-

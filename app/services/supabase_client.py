@@ -56,6 +56,21 @@ def add_expense(user_name: str, plan_id: str, category: str, amount: float, note
     }
     supabase.table("budget_records").insert(payload).execute()
 
+def update_expense(expense_id: str, user_name: str, plan_id: str, category: str, amount: float, note: Optional[str] = None):
+    supabase = get_supabase()
+    payload = {
+        "username": user_name,
+        "plan_id": plan_id,
+        "category": category,
+        "amount": amount,
+        "description": note,
+    }
+    supabase.table("budget_records").update(payload).eq("id", expense_id).execute()
+
+def delete_expense(expense_id: str):
+    supabase = get_supabase()
+    supabase.table("budget_records").delete().eq("id", expense_id).execute()
+
 def list_expenses(plan_id: str) -> list[dict]:
     supabase = get_supabase()
     res = supabase.table("budget_records").select("*").eq("plan_id", plan_id).order("created_at").execute()

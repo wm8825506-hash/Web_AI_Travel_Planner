@@ -4,7 +4,6 @@ import { register, login } from "../api";
 const AuthForm = ({ onLoginSuccess }) => {
   const [isRegister, setIsRegister] = useState(true);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -15,12 +14,15 @@ const AuthForm = ({ onLoginSuccess }) => {
     setError("");
     try {
       if (isRegister) {
-        const data = await register(username, email, password);
+        // 使用邮箱作为用户名
+        const data = await register(username, password);
         setMessage(`🎉 注册成功：${data.username}`);
       } else {
         const data = await login(username, password);
         setMessage(data.message);
-        onLoginSuccess?.(username);
+        // 使用登录返回的用户名
+        const loggedInUsername = data.message.match(/User (.+) logged in successfully/)?.[1] || username;
+        onLoginSuccess?.(loggedInUsername);
       }
     } catch (err) {
       setError(err.message);
@@ -34,24 +36,13 @@ const AuthForm = ({ onLoginSuccess }) => {
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
-            type="text"
-            placeholder="用户名"
+            type="email"
+            placeholder="邮箱"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
             style={styles.input}
           />
-
-          {isRegister && (
-            <input
-              type="email"
-              placeholder="邮箱"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-            />
-          )}
 
           <input
             type="password"

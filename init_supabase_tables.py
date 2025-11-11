@@ -144,14 +144,6 @@ def create_plans_table():
         return False
 
 
-def create_expenses_table():
-    """
-    在Supabase中创建费用表（已废弃，使用budget_records表替代）
-    """
-    print("⚠️  费用表已废弃，请使用budget_records表")
-    return True
-
-
 def main():
     if not supabase:
         print("❌ Supabase客户端未正确初始化")
@@ -161,10 +153,8 @@ def main():
     success1 = create_users_table()
     success2 = create_budget_records_table()
     success3 = create_plans_table()
-    # 不再创建expenses表，使用budget_records表替代
-    success4 = True  # create_expenses_table() 已废弃
     
-    if success1 and success2 and success3 and success4:
+    if success1 and success2 and success3:
         print("✅ 初始化完成!")
         return True
     else:
