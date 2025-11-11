@@ -25,37 +25,28 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Prepare tags
-        id: prep
-        run: |
-          # 计算短 SHA
-          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
-
-          # 规范化仓库完整名：<registry>/<namespace>/<repo>
-          IMAGE="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}"
-
-          # 默认给 latest 和 分支-SHORT_SHA 两个 tag
-          TAGS="--tag ${IMAGE}:latest --tag ${IMAGE}:master-${SHORT_SHA}"
-
-          # 如果是 tag 触发（例如 v1.2.3），再追加版本号 tag
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            REF="${GITHUB_REF_NAME}"
-            TAGS="${TAGS} --tag ${IMAGE}:${REF}"
-          fi
-
-          echo "IMAGE=${IMAGE}" >> $GITHUB_OUTPUT
-          echo "TAGS=${TAGS}"   >> $GITHUB_OUTPUT
-
-      - name: Build and Push
+      - name: Build and Push Backend
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          # 多标签一次性推
-          tags: ${{ steps.prep.outputs.TAGS }}
-          # 可选：打开层缓存，加速二次构建
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # 可选：多架构（如需在 ARM 服务器跑）
-          # platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:master-${{ github.sha }}
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ai-travel-planner-frontend
+          file: ./ai-travel-planner-frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:master-${{ github.sha }}
+
+      # 可选：打开层缓存，加速二次构建
+      # cache-from: type=gha
+      # cache-to: type=gha,mode=max
+      # 可选：多架构（如需在 ARM 服务器跑）
+      # platforms: linux/amd64,linux/arm64
