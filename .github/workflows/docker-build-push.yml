@@ -3,9 +3,9 @@ name: Build & Push Docker to Aliyun ACR
 on:
   push:
     branches: [ master ]
-  # 给标签时也构建（可选）
-  tags:
-    - 'v*'
+    # 给标签时也构建（可选）
+    tags:
+      - 'v*'
 
 jobs:
   build-and-push:
