@@ -29,8 +29,8 @@ const TripManagement = ({ username }) => {
         if (data.success) {
           const processedPlans = (data.data || []).map(plan => ({
             ...plan,
-            destination: plan.destination?.replace(/\x00/g, '') || plan.destination,
-            summary: plan.summary?.replace(/\x00/g, '') || plan.summary
+            destination: plan.destination?.replace(/[\x00]/g, '') || plan.destination,
+            summary: plan.summary?.replace(/[\x00]/g, '') || plan.summary
           }));
           setPlans(processedPlans);
         }
@@ -221,10 +221,10 @@ const TripManagement = ({ username }) => {
                         onClick={() => handleViewPlan(p)}
                       >
                         <div style={{ fontSize: 16, fontWeight: 600 }}>
-                          {p.summary?.replace(/\x00/g, '') || p.destination?.replace(/\x00/g, '') || '无标题'}
+                          {p.summary?.replace(/[\x00]/g, '') || p.destination?.replace(/[\x00]/g, '') || '无标题'}
                         </div>
                         <div style={{ color: "#666", marginTop: 6 }}>
-                          {p.destination?.replace(/\x00/g, '') || '未知目的地'} · {p.days || 0}天
+                          {p.destination?.replace(/[\x00]/g, '') || '未知目的地'} · {p.days || 0}天
                         </div>
                         <div style={{ color: "#999", marginTop: 4 }}>
                           {p.created_at ? new Date(p.created_at).toLocaleString() : '未知时间'}
@@ -420,53 +420,47 @@ const styles = {
     width: "100%",
   },
   spinner: {
-    display: "inline-block",
-    width: "16px",
-    height: "20px",
-    marginRight: "8px",
-    border: "2px solid #fff",
+    border: "2px solid #f3f3f3",
+    borderTop: "2px solid #fff",
     borderRadius: "50%",
-    borderTopColor: "transparent",
-    animation: "spin 0.8s linear infinite",
+    width: "16px",
+    height: "16px",
+    animation: "spin 1s linear infinite",
+    display: "inline-block",
+    marginRight: "8px",
+    verticalAlign: "middle",
   },
   planList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
+    maxHeight: "400px",
+    overflowY: "auto",
   },
   planItem: {
     padding: "12px",
-    border: "1px solid #eee",
-    borderRadius: "8px",
+    borderBottom: "1px solid #eee",
     cursor: "pointer",
-    transition: "all 0.2s",
+    transition: "background-color 0.2s",
+  },
+  planItemHover: {
+    backgroundColor: "#f5f5f5",
   },
   resultSection: {
-    // 右侧结果区域样式
+    // 结果区域样式
   },
   detailColumns: {
     display: "flex",
     gap: "20px",
   },
   leftDetailColumn: {
-    width: "420px", //
+    width: "450px",
   },
   middleColumn: {
-    flex: 1, // 让地图自适应宽度
+    width: "600px", // 设置固定宽度
   },
   rightDetailColumn: {
-    width: "430px", // 保持右侧栏宽度
-  },
-  dayCardsContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-    maxHeight: "800px",
-    overflowY: "auto",
-    paddingRight: "10px",
+    width: "400px",
   },
   dayCardWrapper: {
-    flex: "0 0 auto",
+    marginBottom: "10px",
   },
   placeholderText: {
     color: "#666",
@@ -474,23 +468,21 @@ const styles = {
     marginTop: "20px",
   },
   placeholderIllustration: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "20px",
-    marginTop: "30px",
-    fontSize: "40px",
+    textAlign: "center",
+    fontSize: "3em",
+    marginTop: "20px",
   },
   emoji: {
-    opacity: 0.7,
+    margin: "0 5px",
   },
-  tipsList: {
-    margin: 0,
-    paddingLeft: "20px",
-  },
-  tipItem: {
-    marginBottom: "10px",
-    lineHeight: "1.5",
-  },
+  // tipsList: {
+  //   margin: 0,
+  //   paddingLeft: "20px",
+  // },
+  // tipItem: {
+  //   marginBottom: "10px",
+  //   lineHeight: "1.5",
+  // },
 };
 
 export default TripManagement;

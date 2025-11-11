@@ -1,8 +1,12 @@
-// src/components/TripDayCard.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function TripDayCard({ day, index, activities, dayBudget, isActive, onClick }) {
   const [isExpanded, setIsExpanded] = useState(isActive || false);
+
+  // 当isActive属性变化时，同步更新内部状态
+  useEffect(() => {
+    setIsExpanded(isActive || false);
+  }, [isActive]);
 
   // 重新组织活动列表，将交通信息嵌套到相应的目的地活动下
   const organizeActivities = (activities) => {
@@ -116,7 +120,20 @@ export default function TripDayCard({ day, index, activities, dayBudget, isActiv
         }}
       >
         {/* 显示活动本身 */}
-        <h4 style={styles.activityHeader}>{activity.type}：{activity.name}</h4>
+        <h4 
+          style={styles.activityHeader}
+          onClick={() => handleActivityClick(activity)}
+        >
+          {activity.type}：{activity.name}
+          {activity.location && (
+            <span 
+              style={styles.navigationIcon}
+              title="去这儿"
+            >
+              ↗️
+            </span>
+          )}
+        </h4>
         <div style={styles.activityDetails}>
           {/* 按照合理的顺序展示信息：交通 -> 时间 -> 费用 -> 备注 */}
           {activity.transport && renderTransport(activity.transport)}
@@ -145,12 +162,23 @@ export default function TripDayCard({ day, index, activities, dayBudget, isActiv
     return colorMap[type] || "#666";
   };
 
+  // 处理活动点击事件，跳转到高德地图导航
+  const handleActivityClick = (activity) => {
+    if (activity.location) {
+      const { lat, lng } = activity.location;
+      // 构建高德地图导航链接
+      const gaodeNavUrl = `https://uri.amap.com/navigation?to=${lng},${lat},${encodeURIComponent(activity.name)}&mode=car`;
+      window.open(gaodeNavUrl, '_blank');
+    }
+  };
+
   // 切换展开/折叠状态
   const toggleExpand = () => {
     // 点击时切换展开状态并通知父组件
-    setIsExpanded(!isExpanded);
+    const newExpandedState = !isExpanded;
+    setIsExpanded(newExpandedState);
     if (onClick) {
-      onClick();
+      onClick(newExpandedState); // 传递新的展开状态
     }
   };
 
@@ -234,7 +262,16 @@ const styles = {
   activityHeader: {
     margin: "0 0 10px 0",
     fontSize: "1.1em",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  navigationIcon: {
+    color: "#007BFF",
+    fontSize: "1.1em",
+    marginLeft: "10px",
+    cursor: "pointer",
+    display: "inline-block",
+    transform: "translateY(2px)"
   },
   activityDetails: {
     marginLeft: "15px"

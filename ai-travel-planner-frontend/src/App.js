@@ -2,15 +2,13 @@
 import React, { useState, useEffect } from "react";
 import AuthForm from "./components/AuthForm";
 import TripManagement from "./pages/TripManagement";
-import TripDetail from "./pages/TripDetail";
 import BudgetManagement from "./pages/BudgetManagement";
 import Layout from "./components/Layout";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
-  const [view, setView] = useState("home"); // home | detail | budget
-  const [detailId, setDetailId] = useState(null);
+  const [view, setView] = useState("home"); // home | budget
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -34,7 +32,6 @@ function App() {
     setIsLoggedIn(false);
     setUsername("");
     setView("home");
-    setDetailId(null);
     localStorage.removeItem("username");
     localStorage.removeItem("isLoggedIn");
   };
@@ -57,7 +54,6 @@ function App() {
       currentView={view}
     >
       {view === "home" && <TripManagement username={username} />}
-      {view === "detail" && detailId && <TripDetail planId={detailId} username={username} onBack={() => { setDetailId(null); setView("home"); }} />}
       {view === "budget" && <BudgetManagement user={username} />}
     </Layout>
   );
