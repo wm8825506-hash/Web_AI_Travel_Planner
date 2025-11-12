@@ -3,43 +3,16 @@ name: Build & Push Docker to Aliyun ACR
 on:
   push:
     branches: [ master, main ]
-    # 给标签时也构建（可选）
     tags:
       - 'v*'
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ai-travel-planner-frontend/package-lock.json
-
-      - name: Install frontend dependencies
-        run: |
-          cd ai-travel-planner-frontend
-          npm ci --legacy-peer-deps
-
-      - name: Build Frontend Static Files
-        run: |
-          cd ai-travel-planner-frontend
-          # 设置环境变量以避免ESLint警告被视为错误
-          export CI=false
-          npm run build
-
-      - name: Copy Frontend Build to Backend Static Directory
-        run: |
-          mkdir -p static
-          touch static/.docker
-          cp -r ai-travel-planner-frontend/build/* static/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,7 +24,8 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and Push Backend
+      # ---- Backend image ----
+      - name: Build & Push Backend
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -61,7 +35,8 @@ jobs:
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_planner_wm:latest
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_planner_wm:${{ github.sha }}
 
-      - name: Build and Push Frontend
+      # ---- Frontend image (nginx) ----
+      - name: Build & Push Frontend
         uses: docker/build-push-action@v6
         with:
           context: ./ai-travel-planner-frontend
@@ -70,3 +45,4 @@ jobs:
           tags: |
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_frontend:latest
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_frontend:${{ github.sha }}
+

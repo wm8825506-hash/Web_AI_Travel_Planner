@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   backend:
     image: crpi-6w6ulyeiqewln120.cn-hangzhou.personal.cr.aliyuncs.com/ai_travel_planner_wm/ai_travel_planner_wm:latest
@@ -7,11 +9,16 @@ services:
     env_file:
       - .env
     healthcheck:
+      # 若镜像里没有 curl，可改用:
+      # test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/health >/dev/null 2>&1"]
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    networks:
+      - appnet
+    restart: unless-stopped
 
   frontend:
     image: crpi-6w6ulyeiqewln120.cn-hangzhou.personal.cr.aliyuncs.com/ai_travel_planner_wm/ai_travel_frontend:latest
@@ -19,6 +26,13 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
-    environment:
-      - REACT_APP_BACKEND_URL=http://localhost:8000
+      backend:
+        condition: service_healthy
+    # 环境变量删除：REACT_APP_BACKEND_URL 在运行期不起作用
+    networks:
+      - appnet
+    restart: unless-stopped
+
+networks:
+  appnet:
+    driver: bridge

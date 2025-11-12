@@ -24,7 +24,7 @@ const TripManagement = ({ username }) => {
       if (!username) return;
       
       try {
-        const res = await fetch(`http://127.0.0.1:8000/plan/list?user=${username}`);
+        const res = await fetch(`/api/plan/list?user=${username}`);
         const data = await res.json();
         if (data.success) {
           const processedPlans = (data.data || []).map(plan => ({

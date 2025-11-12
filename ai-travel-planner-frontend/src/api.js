@@ -1,7 +1,9 @@
-const BASE_URL = "http://127.0.0.1:8000/auth";
+// src/api.js
+const API_BASE = "/api";               // 由前端 Nginx 把 /api 反代到 backend:8000/api
+const AUTH_BASE = `${API_BASE}/auth`;
 
 export const register = async (username, password) => {
-  const res = await fetch(`${BASE_URL}/register`, {
+  const res = await fetch(`${AUTH_BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password: password.slice(0, 72) }),
@@ -12,7 +14,7 @@ export const register = async (username, password) => {
 };
 
 export const login = async (email, password) => {
-  const res = await fetch(`${BASE_URL}/login`, {
+  const res = await fetch(`${AUTH_BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username_or_email: email, password: password.slice(0, 72) }),
@@ -21,32 +23,10 @@ export const login = async (email, password) => {
   if (!res.ok) throw new Error(data.detail || "登录失败");
   return data;
 };
-// src/api.js
-// export const createPlan = async (planData) => {
-//   try {
-//     const response = await fetch("http://127.0.0.1:8000/plan", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(planData),
-//     });
-//
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       throw new Error(errorData.detail || "生成行程失败");
-//     }
-//
-//     const data = await response.json();
-//     return data; // 后端返回 { success: true, data: {...} }
-//   } catch (error) {
-//     console.error("Error creating plan:", error);
-//     return { success: false, error: error.message };
-//   }
-// };
+
 export async function createPlan(body) {
   try {
-    const res = await fetch("http://127.0.0.1:8000/plan/generate", {
+    const res = await fetch(`${API_BASE}/plan/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

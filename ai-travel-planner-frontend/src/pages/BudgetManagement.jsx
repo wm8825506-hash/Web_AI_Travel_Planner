@@ -303,7 +303,7 @@ export default function BudgetManagement({ user }) {
 
     setAutoDetecting(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/expense/auto-categorize", {
+      const response = await fetch("api/expense/auto-categorize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input.description }),
