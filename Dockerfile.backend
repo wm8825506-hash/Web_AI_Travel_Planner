@@ -1,0 +1,30 @@
+# 使用 Python 3.9 作为基础镜像
+FROM python:3.9-slim
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 requirements.txt 文件
+COPY requirements.txt .
+
+# 安装系统依赖和 Python 依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements.txt
+
+# 复制应用代码
+COPY app/ ./app/
+COPY init_supabase_tables.py .
+
+# 暴露端口
+EXPOSE 8000
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+# 启动应用
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
