@@ -29,8 +29,8 @@ const TripManagement = ({ username }) => {
         if (data.success) {
           const processedPlans = (data.data || []).map(plan => ({
             ...plan,
-            destination: plan.destination?.replace(/[\x00]/g, '') || plan.destination,
-            summary: plan.summary?.replace(/[\x00]/g, '') || plan.summary
+            destination: plan.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || plan.destination,
+            summary: plan.summary?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || plan.summary
           }));
           setPlans(processedPlans);
         }
@@ -90,10 +90,28 @@ const TripManagement = ({ username }) => {
     try {
       const res = await createPlan({ query: prompt, user: username });
       if (res.success) {
-        setPlan(res.data);
+        // 清理返回数据中的控制字符
+        const cleanData = {
+          ...res.data,
+          destination: res.data.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || res.data.destination,
+          summary: res.data.summary?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || res.data.summary,
+          plan: res.data.plan ? Object.fromEntries(
+            Object.entries(res.data.plan).map(([day, activities]) => [
+              day,
+              activities.map(activity => ({
+                ...activity,
+                name: activity.name?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.name,
+                detail: activity.detail?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.detail,
+                note: activity.note?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.note
+              }))
+            ])
+          ) : res.data.plan
+        };
+        
+        setPlan(cleanData);
         // 默认选中第一天
-        if (res.data.plan) {
-          const firstDay = Object.keys(res.data.plan)[0];
+        if (cleanData.plan) {
+          const firstDay = Object.keys(cleanData.plan)[0];
           setSelectedDay(firstDay);
         }
       } else {
@@ -115,12 +133,30 @@ const TripManagement = ({ username }) => {
 
   // 查看行程详情
   const handleViewPlan = (selectedPlan) => {
-    setPlan(selectedPlan);
+    // 清理计划数据中的控制字符
+    const cleanPlan = {
+      ...selectedPlan,
+      destination: selectedPlan.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || selectedPlan.destination,
+      summary: selectedPlan.summary?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || selectedPlan.summary,
+      plan: selectedPlan.plan ? Object.fromEntries(
+        Object.entries(selectedPlan.plan).map(([day, activities]) => [
+          day,
+          activities.map(activity => ({
+            ...activity,
+            name: activity.name?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.name,
+            detail: activity.detail?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.detail,
+            note: activity.note?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || activity.note
+          }))
+        ])
+      ) : selectedPlan.plan
+    };
+    
+    setPlan(cleanPlan);
     setActiveTab("detail");
     setResetTrigger(prev => prev + 1); // 触发ExpenseRecorder重置
     // 默认选中第一天
-    if (selectedPlan.plan) {
-      const firstDay = Object.keys(selectedPlan.plan)[0];
+    if (cleanPlan.plan) {
+      const firstDay = Object.keys(cleanPlan.plan)[0];
       setSelectedDay(firstDay);
     }
   };
@@ -221,10 +257,10 @@ const TripManagement = ({ username }) => {
                         onClick={() => handleViewPlan(p)}
                       >
                         <div style={{ fontSize: 16, fontWeight: 600 }}>
-                          {p.summary?.replace(/[\x00]/g, '') || p.destination?.replace(/[\x00]/g, '') || '无标题'}
+                          {p.summary?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || p.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || '无标题'}
                         </div>
                         <div style={{ color: "#666", marginTop: 6 }}>
-                          {p.destination?.replace(/[\x00]/g, '') || '未知目的地'} · {p.days || 0}天
+                          {p.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') || '未知目的地'} · {p.days || 0}天
                         </div>
                         <div style={{ color: "#999", marginTop: 4 }}>
                           {p.created_at ? new Date(p.created_at).toLocaleString() : '未知时间'}
@@ -244,7 +280,7 @@ const TripManagement = ({ username }) => {
             <div style={styles.resultSection}>
               {/* 行程概览 */}
               <div style={styles.card}>
-                <h3>📅 {plan.summary}-{plan.destination}</h3>
+                <h3>📅 {plan.summary?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')}-{plan.destination?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')}</h3>
               </div>
               
               {/* 三栏布局：行程列表(左) + 地图(中) + 个性化建议和支出记录(右) */}
@@ -448,41 +484,44 @@ const styles = {
   },
   detailColumns: {
     display: "flex",
-    gap: "20px",
+    gap: "15px",
+    marginTop: "15px",
   },
   leftDetailColumn: {
-    width: "450px",
+    flex: 1,
+    minWidth: "300px",
   },
   middleColumn: {
-    width: "600px", // 设置固定宽度
+    flex: 1.5,
+    minWidth: "400px",
   },
   rightDetailColumn: {
-    width: "400px",
+    flex: 1,
+    minWidth: "300px",
   },
   dayCardWrapper: {
-    marginBottom: "10px",
+    marginBottom: "15px",
   },
   placeholderText: {
-    color: "#666",
     textAlign: "center",
-    marginTop: "20px",
+    color: "#666",
+    marginTop: "50px",
   },
   placeholderIllustration: {
     textAlign: "center",
-    fontSize: "3em",
+    fontSize: "48px",
     marginTop: "20px",
   },
   emoji: {
-    margin: "0 5px",
+    margin: "0 10px",
   },
-  // tipsList: {
-  //   margin: 0,
-  //   paddingLeft: "20px",
-  // },
-  // tipItem: {
-  //   marginBottom: "10px",
-  //   lineHeight: "1.5",
-  // },
+  tipsList: {
+    paddingLeft: "20px",
+    margin: "10px 0",
+  },
+  tipItem: {
+    marginBottom: "8px",
+  },
 };
 
 export default TripManagement;
