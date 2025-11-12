@@ -41,6 +41,9 @@ COPY --from=backend-builder /usr/local/bin /usr/local/bin
 # 从frontend-builder阶段复制构建的前端文件到static目录
 COPY --from=frontend-builder /app/build /app/static
 
+# 确保static目录存在并添加一个标记文件
+RUN ls -la /app/static && touch /app/static/.docker
+
 # 复制后端应用代码
 COPY app/ ./app/
 COPY init_supabase_tables.py .
