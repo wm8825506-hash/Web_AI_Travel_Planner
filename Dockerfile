@@ -38,10 +38,6 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# 安装运行时的系统依赖（如果需要）
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-
 # 从backend-builder阶段复制已安装的依赖
 COPY --from=backend-builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
