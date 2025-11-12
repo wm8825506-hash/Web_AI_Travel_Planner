@@ -19,7 +19,7 @@ services:
     image: crpi-6w6ulyeiqewln120.cn-hangzhou.personal.cr.aliyuncs.com/ai_travel_planner_wm/ai_travel_frontend:latest
     container_name: ai_travel_frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
     environment:
