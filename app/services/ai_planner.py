@@ -61,7 +61,7 @@ PROMPT_TEMPLATE = r"""
     "其他": 100
   },
   "personalized_tips": [
-    "1-2条实用建议"
+    "1条实用建议"
   ]
 }
 
