@@ -6,6 +6,7 @@ on:
     # 给标签时也构建（可选）
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -25,6 +26,18 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Build Frontend Static Files
+        run: |
+          cd ai-travel-planner-frontend
+          npm ci --legacy-peer-deps
+          npm run build
+          cd ..
+
+      - name: Copy Frontend Build to Backend Static Directory
+        run: |
+          mkdir -p static
+          cp -r ai-travel-planner-frontend/build/* static/
+
       - name: Build and Push Backend
         uses: docker/build-push-action@v6
         with:
@@ -32,8 +45,8 @@ jobs:
           file: ./Dockerfile.backend
           push: true
           tags: |
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:latest
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:master-${{ github.sha }}
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_planner_wm:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_planner_wm:${{ github.sha }}
 
       - name: Build and Push Frontend
         uses: docker/build-push-action@v6
@@ -42,5 +55,5 @@ jobs:
           file: ./ai-travel-planner-frontend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:latest
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:master-${{ github.sha }}
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_frontend:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai_travel_frontend:${{ github.sha }}
