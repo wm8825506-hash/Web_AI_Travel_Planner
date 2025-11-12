@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.db import init_db
 from app.routers import home, auth, plan, speech, budget, expense
+import os
 
 app = FastAPI(title="AI Travel Planner", version="0.1")
 
@@ -25,5 +26,6 @@ app.include_router(speech.router, prefix="/speech")
 app.include_router(budget.router, prefix="/budget")
 app.include_router(expense.router, prefix="/expense")
 
-# 挂载静态文件目录，提供前端界面
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# 只有在static目录存在时才挂载静态文件服务
+if os.path.isdir("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
