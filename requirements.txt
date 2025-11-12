@@ -9,3 +9,5 @@ psycopg2-binary
 supabase
 passlib
 dashscope
+websocket-client
+pydub
