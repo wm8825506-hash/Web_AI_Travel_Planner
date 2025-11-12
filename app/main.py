@@ -64,6 +64,12 @@ app.include_router(budget.router, prefix="/budget")
 app.include_router(expense.router, prefix="/expense")
 
 
+# 健康检查端点
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
 # 检查是否在Docker环境中运行
 def is_running_in_docker():
     return os.path.exists('/.dockerenv') or os.path.exists('/app/static/.docker')
