@@ -1,16 +1,16 @@
 version: '3.8'
 
 services:
-  backend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+  ai-travel-planner:
+    image: crpi-6w6ulyeiqewln120.cn-hangzhou.personal.cr.aliyuncs.com/ai_travel_planner_wm/ai_travel_planner_wm:latest
+    container_name: ai-travel-planner
     ports:
       - "8000:8000"
     environment:
-      - ENV=production
-    networks:
-      - app-network
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    env_file:
+      - .env
 
   frontend:
     build:

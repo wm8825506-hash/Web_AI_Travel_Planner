@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.db import init_db
 from app.routers import home, auth, plan, speech, budget, expense
@@ -23,3 +24,6 @@ app.include_router(plan.router, prefix="/plan")
 app.include_router(speech.router, prefix="/speech")
 app.include_router(budget.router, prefix="/budget")
 app.include_router(expense.router, prefix="/expense")
+
+# 挂载静态文件目录，提供前端界面
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
