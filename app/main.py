@@ -27,5 +27,6 @@ app.include_router(budget.router, prefix="/budget")
 app.include_router(expense.router, prefix="/expense")
 
 # 只有在static目录存在时才挂载静态文件服务
+# 这样可以确保在Docker环境中提供前端界面，在本地开发环境中正常运行后端API
 if os.path.isdir("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")

@@ -38,16 +38,12 @@ WORKDIR /app
 COPY --from=backend-builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
-# 从frontend-builder阶段复制构建的前端文件
+# 从frontend-builder阶段复制构建的前端文件到static目录
 COPY --from=frontend-builder /app/build /app/static
 
 # 复制后端应用代码
 COPY app/ ./app/
 COPY init_supabase_tables.py .
-
-# 修改后端以提供静态文件
-RUN sed -i '1i from fastapi.staticfiles import StaticFiles\n' app/main.py && \
-    sed -i '/app.include_router(expense.router, prefix="\/expense")/a app.mount("\/", StaticFiles(directory="static", html=True), name="static")' app/main.py
 
 # 暴露端口
 EXPOSE 8000
