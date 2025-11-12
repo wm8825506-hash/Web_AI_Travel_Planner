@@ -11,3 +11,4 @@ passlib
 dashscope
 websocket-client
 pydub
+python-multipart

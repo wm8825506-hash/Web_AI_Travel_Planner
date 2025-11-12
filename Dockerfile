@@ -30,6 +30,7 @@ COPY requirements.txt .
 # 安装编译依赖和Python依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir -r requirements.txt
 
@@ -41,6 +42,12 @@ WORKDIR /app
 # 从backend-builder阶段复制已安装的依赖
 COPY --from=backend-builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
+
+# 安装运行时需要的依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # 从frontend-builder阶段复制构建的前端文件到static目录
 COPY --from=frontend-builder /app/build /app/static
