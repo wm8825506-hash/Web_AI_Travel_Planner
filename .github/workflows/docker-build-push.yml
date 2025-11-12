@@ -38,6 +38,7 @@ jobs:
       - name: Copy Frontend Build to Backend Static Directory
         run: |
           mkdir -p static
+          touch static/.docker
           cp -r ai-travel-planner-frontend/build/* static/
 
       - name: Set up Docker Buildx

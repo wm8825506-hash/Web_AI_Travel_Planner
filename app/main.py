@@ -30,8 +30,9 @@ app.include_router(expense.router, prefix="/expense")
 def is_running_in_docker():
     return os.path.exists('/.dockerenv') or os.path.exists('/app/static/.docker')
 
-# 如果在 Docker 环境中运行且 static 目录存在，则挂载静态文件
-if is_running_in_docker() or os.path.isdir("static"):
+# 只在 Docker 环境中且 static 目录存在时才挂载静态文件
+# 在开发环境中不挂载，避免干扰
+if is_running_in_docker() and os.path.isdir("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 # 健康检查端点

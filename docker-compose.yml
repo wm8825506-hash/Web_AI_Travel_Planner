@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: crpi-6w6ulyeiqewln120.cn-hangzhou.personal.cr.aliyuncs.com/ai_travel_planner_wm/ai_travel_planner_wm:latest
