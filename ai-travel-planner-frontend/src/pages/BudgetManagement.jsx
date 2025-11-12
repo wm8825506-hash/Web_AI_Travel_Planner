@@ -41,7 +41,7 @@ export default function BudgetManagement({ user }) {
       if (!user) return;
       
       try {
-        const res = await fetch(`http://127.0.0.1:8000/plan/list?user=${user}`);
+        const res = await fetch(`/api/plan/list?user=${user}`);
         const data = await res.json();
         if (data.success) {
           const processedPlans = (data.data || []).map(plan => ({
@@ -86,7 +86,7 @@ export default function BudgetManagement({ user }) {
     
     // 获取实际支出数据
     try {
-      const res = await fetch(`http://127.0.0.1:8000/budget/summary/${validPlan.id}`);
+      const res = await fetch(`/api/budget/summary/${validPlan.id}`);
       const data = await res.json();
       if (data.success) {
         // 构建按类别汇总的实际支出数据
@@ -158,7 +158,7 @@ export default function BudgetManagement({ user }) {
       return;
     }
     
-    const response = await fetch("http://127.0.0.1:8000/budget/add", {
+    const response = await fetch("api/budget/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestData),
@@ -209,7 +209,7 @@ export default function BudgetManagement({ user }) {
 
     try {
       // 发送更新请求到后端
-      const response = await fetch("http://127.0.0.1:8000/budget/update", {
+      const response = await fetch("api/budget/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -253,7 +253,7 @@ export default function BudgetManagement({ user }) {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/budget/delete/${itemId}`, {
+      const response = await fetch(`/api/budget/delete/${itemId}`, {
         method: "DELETE",
       });
 

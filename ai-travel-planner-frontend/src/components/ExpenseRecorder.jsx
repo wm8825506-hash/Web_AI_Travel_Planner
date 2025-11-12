@@ -17,7 +17,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
       if (!planId) return;
       
       try {
-        const res = await fetch(`http://127.0.0.1:8000/budget/summary/${planId}`);
+        const res = await fetch(`/api/budget/summary/${planId}`);
         const data = await res.json();
         if (data.success) {
           setExpenses(data.items || []);
@@ -63,7 +63,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
     }
 
     try {
-      await fetch("http://127.0.0.1:8000/budget/add", {
+      await fetch("/api/budget/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
@@ -73,7 +73,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
       setInput({ category: "", amount: "", description: "" });
       
       // 重新获取支出记录
-      const res = await fetch(`http://127.0.0.1:8000/budget/summary/${planId}`);
+      const res = await fetch(`/api/budget/summary/${planId}`);
       const data = await res.json();
       if (data.success) {
         setExpenses(data.items || []);
@@ -105,7 +105,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
     
     // 由于后端在expense/voice-add中已经自动保存到数据库，这里只需要刷新列表
     // 重新获取支出记录
-    fetch(`http://127.0.0.1:8000/budget/summary/${planId}`)
+    fetch(`/api/budget/summary/${planId}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -130,7 +130,7 @@ export default function ExpenseRecorder({ planId, username, onExpenseAdded, rese
 
     setAutoDetecting(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/expense/auto-categorize", {
+      const response = await fetch("/api/expense/auto-categorize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input.description }),

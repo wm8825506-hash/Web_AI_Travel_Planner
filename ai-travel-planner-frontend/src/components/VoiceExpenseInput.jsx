@@ -32,7 +32,7 @@ const VoiceExpenseInput = ({ username, planId, onResult }) => {
 
     setMessage("🎤 正在识别并保存支出信息...");
     
-    const res = await fetch("http://127.0.0.1:8000/expense/voice-add", {
+    const res = await fetch("/api/expense/voice-add", {
       method: "POST",
       body: formData,
     });

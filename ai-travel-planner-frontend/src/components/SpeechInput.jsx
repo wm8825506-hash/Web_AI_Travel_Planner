@@ -36,7 +36,7 @@ const SpeechInput = ({ onRecognized }) => {
     formData.append("file", blob, "speech.wav");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/speech/speech-to-text", {
+      const res = await fetch("/api/speech/speech-to-text", {
         method: "POST",
         body: formData,
       });
