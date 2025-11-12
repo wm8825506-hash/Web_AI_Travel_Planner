@@ -25,7 +25,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and Push Backend
+      - name: Build and Push Combined Image
         uses: docker/build-push-action@v6
         with:
           context: .
