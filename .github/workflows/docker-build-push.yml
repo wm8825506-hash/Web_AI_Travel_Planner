@@ -34,13 +34,3 @@ jobs:
           tags: |
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:latest
             ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPO }}:master-${{ github.sha }}
-
-      - name: Build and Push Frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./ai-travel-planner-frontend
-          file: ./ai-travel-planner-frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:latest
-            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/ai-travel-frontend:master-${{ github.sha }}
