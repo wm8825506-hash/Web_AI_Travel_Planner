@@ -188,8 +188,7 @@ export default function TripMap({ plan, selectedDay }) {
           markerZoomAnimation={true}
         >
           <TileLayer
-            // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            url="https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             keepBuffer={3}
             updateWhenIdle={false}
